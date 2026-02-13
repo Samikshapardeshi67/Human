@@ -1,4 +1,12 @@
-6. Technology Stack
+The proposed system follows a middleware-based architecture to synchronize record-level security from Microsoft Dynamics 365 (Dataverse) to SharePoint Online document folders.
+5.1 Architectural Overview
+The system consists of the following components:
+Microsoft Dynamics 365 (Dataverse) – Source system containing business records and security configurations.
+Trigger Mechanism (Plugin / Power Automate) – Detects changes in record ownership or sharing.
+Azure App Service (Backend Application) – Core processing engine that handles synchronization logic.
+Dataverse Web API – Used to fetch record-level security details.
+Microsoft Graph API – Used to manage SharePoint folders and permissions.
+SharePoint Online – Target system where document folders are stored.6. Technology Stack
 The system is built using modern Microsoft cloud technologies:
 Microsoft Dynamics 365 (Dataverse) – Record and security source.
 Microsoft SharePoint Online – Document storage system.

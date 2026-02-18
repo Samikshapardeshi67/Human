@@ -1,28 +1,73 @@
-flowchart LR
+flowchart TB
 
-    subgraph Microsoft_365
-        D[ Dynamics 365 <br> (Dataverse Records) ]
-        T[ Microsoft Teams <br> (Team Membership) ]
-        AAD[ Azure AD <br> (Users & Groups) ]
-        SP[ SharePoint Online <br> (Folders & Permissions) ]
+%% ===============================
+%% LAYER 1 — SOURCE SYSTEMS
+%% ===============================
+
+subgraph SOURCE["Source Systems (Microsoft 365)"]
+
+    DYN["Dynamics 365 (Dataverse)<br/>• Record Ownership<br/>• systemusers Entity"]
+
+    TEAMS["Microsoft Teams<br/>• Team Membership"]
+
+    AAD["Azure AD (Entra ID)<br/>• Users<br/>• Groups<br/>• Authentication"]
+
+    SP["SharePoint Online<br/>• Record Folders<br/>• Permission ACL"]
+
+end
+
+GRAPH["Microsoft Graph API<br/>Unified Communication Gateway"]
+
+%% ===============================
+%% LAYER 2 — AZURE BACKEND
+%% ===============================
+
+subgraph AZURE["Azure Environment"]
+
+    APP["Azure App Service<br/>Security Orchestrator"]
+
+    subgraph COMPONENTS["Backend Components"]
+
+        SUB["Subscription Manager<br/>• Create Subscription<br/>• Renew Subscription"]
+
+        WEB["Webhook Controller<br/>• Receive Notifications<br/>• Validate Requests"]
+
+        AUTH["Authentication Module<br/>• Acquire Token<br/>• Cache Token"]
+
+        BL["Business Logic Engine<br/>• Detect Change Type<br/>• Identity Mapping<br/>• Permission Comparison"]
+
+        SPCTRL["SharePoint Permission Controller<br/>• Fetch Current ACL<br/>• Add/Remove Users"]
+
+        LOG["Logging & Audit Module"]
+
     end
 
-    G[ Microsoft Graph API ]
-    BE[ Azure App Service <br> Security Orchestrator Backend ]
+end
 
-    %% Change Detection
-    D -- Record Ownership Change --> G
-    T -- Team Membership Change --> AAD
-    AAD -- Group Membership Update --> G
+%% ===============================
+%% CHANGE FLOW
+%% ===============================
 
-    %% Subscription Flow
-    BE -- Create Subscription --> G
-    G -- Webhook Notification --> BE
+DYN -- Owner Updated --> GRAPH
+TEAMS -- Member Added/Removed --> AAD
+AAD -- Group Membership Updated --> GRAPH
 
-    %% Data Fetching
-    BE -- Fetch Updated Data --> G
-    G -- Returns Users / Owners --> BE
+SUB -- Register Subscription --> GRAPH
+GRAPH -- Webhook Notification --> WEB
 
-    %% SharePoint Update
-    BE -- Update Folder Permissions --> G
-    G -- Apply Permission Changes --> SP
+WEB --> AUTH
+AUTH --> GRAPH
+
+WEB --> BL
+
+BL -- Fetch Record Data --> GRAPH
+BL -- Fetch Group Members --> GRAPH
+GRAPH -- Return Azure AD Identities --> BL
+
+BL --> SPCTRL
+SPCTRL -- Get Current Permissions --> GRAPH
+SPCTRL -- Apply Permission Updates --> GRAPH
+GRAPH --> SP
+
+SP --> LOG
+BL --> LOG
